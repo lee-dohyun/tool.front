@@ -1,0 +1,164 @@
+/* QR 코드 생성기 전용 레이아웃. 공통 토큰은 style.css 에서 온다. */
+
+.tool-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 880px) {
+  .tool-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.field { margin-bottom: 18px; }
+.field:last-child { margin-bottom: 0; }
+
+label {
+  display: block;
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  margin-bottom: 6px;
+}
+
+.hint {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+
+input[type="url"],
+input[type="text"],
+select {
+  width: 100%;
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+
+input[type="url"] { font-family: var(--mono); font-size: .92rem; }
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+}
+
+/* 입력값 문제를 알리는 인라인 메시지. 비어 있으면 자리도 차지하지 않는다. */
+.msg {
+  margin: 10px 0 0;
+  font-size: .84rem;
+  line-height: 1.5;
+  display: none;
+}
+.msg.show { display: block; }
+.msg.warn { color: var(--warning); }
+.msg.error { color: var(--danger); }
+.msg.ok { color: var(--success); }
+
+/* ---------- 미리보기 ---------- */
+
+.preview {
+  position: sticky;
+  top: 24px;
+  text-align: center;
+}
+
+.canvas-frame {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  padding: 18px;
+  background: #ffffff; /* QR 은 대비를 위해 다크모드에서도 흰 바탕을 유지한다 */
+  border: 1px solid var(--divider);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+#qr-canvas {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  image-rendering: pixelated; /* 모듈 경계가 뭉개지지 않게 */
+}
+
+#qr-canvas[hidden] { display: none; }
+
+.placeholder {
+  color: var(--text-muted);
+  font-size: .88rem;
+  padding: 40px 12px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+button {
+  flex: 1 1 auto;
+  min-width: 104px;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--surface);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter .12s ease, opacity .12s ease;
+}
+
+button:hover:not(:disabled) { filter: brightness(1.1); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+button.secondary {
+  color: var(--accent);
+  background: transparent;
+}
+
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+.meta {
+  margin-top: 14px;
+  font-family: var(--mono);
+  font-size: .74rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* 되돌아가기 링크 */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .85rem;
+  text-decoration: none;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.back:hover { color: var(--accent); }

@@ -1,0 +1,94 @@
+name: CI
+
+# tool.posselect.com = 이 저장소의 site/ 를 nginx:alpine 에 얹은 정적 사이트.
+# main push 시 테스트 → 이미지 push → self-hosted runner 가 K3s 에 즉시 반영한다.
+# 즉 main push 는 곧 프로덕션 배포다.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # QR 왕복 검증(생성한 QR 이 실제로 디코딩되는지) + 죽은 로컬 참조 검사.
+      # scripts/verify.sh 는 git 훅·Claude 훅도 부르는 같은 진입점이다.
+      - run: bash scripts/verify.sh
+
+  build:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Dependabot PR 에는 저장소 시크릿이 전달되지 않는다. 이 잡 자체가 push 한정이라
+      # 지금은 도달하지 않지만, 조건을 푸는 순간 상시 실패로 바뀌므로 가드를 남겨 둔다.
+      - name: Log in to DockerHub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME || 'ci-local' }}/tool-front:latest
+            ${{ secrets.DOCKERHUB_USERNAME || 'ci-local' }}/tool-front:${{ github.sha }}
+
+      # SCA 리포트 전용(architecture#15/#17 와 같은 정책) — 지금은 게이트로 쓰지 않는다.
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME || 'ci-local' }}/tool-front:${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH,MEDIUM"
+          exit-code: "0"
+
+      - name: Upload Trivy scan results as workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: trivy-results-${{ github.sha }}
+          path: trivy-results.sarif
+          retention-days: 30
+
+      - name: Upload Trivy scan results to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4.37.7
+        with:
+          sarif_file: "trivy-results.sarif"
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: [self-hosted, k3s-home]
+    steps:
+      - name: Deploy new image to K3s
+        run: |
+          /usr/local/bin/kubectl --kubeconfig=/home/leedohyun/.kube-ci/tool-front-deployer.kubeconfig \
+            set image deployment/posselect-tool tool-front=leedohyun1985/tool-front:${{ github.sha }} -n tool
+
+      - name: Wait for rollout
+        run: |
+          /usr/local/bin/kubectl --kubeconfig=/home/leedohyun/.kube-ci/tool-front-deployer.kubeconfig \
+            rollout status deployment/posselect-tool -n tool --timeout=300s

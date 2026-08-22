@@ -1,0 +1,12 @@
+{
+  "name": "tool-front",
+  "version": "1.0.0",
+  "private": true,
+  "description": "tool.posselect.com — PosSelect 개발자 도구 모음",
+  "scripts": {
+    "test": "node scripts/test/qr-roundtrip.mjs"
+  },
+  "devDependencies": {
+    "jsqr": "^1.4.0"
+  }
+}

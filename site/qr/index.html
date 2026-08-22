@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR 코드 생성기 · PosSelect 개발자 도구</title>
+<meta name="description" content="URL을 입력하면 그 주소로 바로 연결되는 QR 코드를 만든다.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/qr.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <a class="back" href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      개발자 도구 모음
+    </a>
+    <div class="brand">
+      <span class="brand-mark">PosSelect</span>
+      <h1>QR 코드 생성기</h1>
+    </div>
+    <p class="tagline">
+      URL을 넣으면 그 주소로 바로 연결되는 QR 코드를 만든다.
+      생성은 전부 브라우저 안에서 처리되므로 입력한 주소가 서버로 전송되지 않는다.
+    </p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tool-layout">
+
+    <!-- ---------- 입력 ---------- -->
+    <section class="panel">
+      <div class="field">
+        <label for="url">연결할 URL</label>
+        <input type="url" id="url" placeholder="https://home.posselect.com" autocomplete="off" spellcheck="false" autofocus>
+        <p class="hint">스킴을 빼고 <code>home.posselect.com</code> 처럼 넣으면 <code>https://</code>를 자동으로 붙인다.</p>
+        <p class="msg" id="msg" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="ecc">오류 정정 수준</label>
+          <select id="ecc">
+            <option value="L">L — 약 7% 복원</option>
+            <option value="M" selected>M — 약 15% 복원</option>
+            <option value="Q">Q — 약 25% 복원</option>
+            <option value="H">H — 약 30% 복원</option>
+          </select>
+          <p class="hint">인쇄물처럼 훼손 가능성이 있으면 높게.</p>
+        </div>
+
+        <div class="field">
+          <label for="size">내려받을 크기</label>
+          <select id="size">
+            <option value="512">512 × 512</option>
+            <option value="1024" selected>1024 × 1024</option>
+            <option value="2048">2048 × 2048</option>
+          </select>
+          <p class="hint">PNG 기준. SVG는 크기와 무관하다.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="margin">여백(quiet zone)</label>
+        <select id="margin">
+          <option value="4" selected>4 모듈 — 표준 권장</option>
+          <option value="2">2 모듈 — 좁게</option>
+          <option value="0">0 모듈 — 없음</option>
+        </select>
+        <p class="hint">
+          QR 규격은 4모듈 이상을 권장한다. 여백을 줄이면 배경과 붙어 인식이 실패할 수 있다.
+        </p>
+      </div>
+    </section>
+
+    <!-- ---------- 미리보기 / 내려받기 ---------- -->
+    <section class="preview">
+      <div class="canvas-frame">
+        <canvas id="qr-canvas" hidden></canvas>
+        <p class="placeholder" id="placeholder">URL을 입력하면 여기에 QR 코드가 나타난다.</p>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="dl-png" disabled>PNG 저장</button>
+        <button type="button" id="dl-svg" class="secondary" disabled>SVG 저장</button>
+        <button type="button" id="copy" class="secondary" disabled>이미지 복사</button>
+      </div>
+
+      <p class="meta" id="meta"></p>
+    </section>
+
+  </div>
+</main>
+
+<script src="/assets/vendor/qrcode.js"></script>
+<script src="/assets/qr.js"></script>
+</body>
+</html>
