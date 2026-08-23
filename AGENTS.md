@@ -14,6 +14,24 @@
   (home.posselect.com 배너가 `--color-primary` 미정의로 투명해진 사고) 외부에서 변수를 상속받는
   구조 자체를 만들지 않는다. 토큰이 바뀌면 손으로 맞춘다.
 
+## 브랜드 로고
+
+**위 "의존성 안 붙인다" 규칙은 색/타이포 토큰 얘기지, 로고 이미지에는 적용되지 않는다.**
+PosSelect 워드마크는 전용 서체가 아니라 Arial Black Italic 조판이라 CSS(`font-weight`/`italic`/
+`text-transform`)로 흉내 내고 싶어지지만, 실제로 그렇게 만들면 실제 워드마크와 미묘하게 다르고
+표기 규칙(`PosSelect`, 전체 대문자 금지)도 깨지기 쉽다(2026-08-23 사고 — `brand-mark`가
+`<span>PosSelect</span>` + `uppercase` 였던 것이 실제로는 "POSSELECT"로 렌더됐다).
+
+**로고가 필요하면 항상 CDN 이미지를 `<img>`로 참조한다** — 패키지 의존이 아니라 이미지 URL
+하나라 위 규칙과 무관하다:
+```html
+<img class="brand-mark" src="https://image.posselect.com/cdn/logos/posselect-logo-hires-no-r.webp" alt="PosSelect">
+```
+`posselect-shell`(`src/components/Header.tsx`의 `LOGO_URL`)과 동일한 자산이다 — 새 URL을 만들지
+말고 이 값을 그대로 쓸 것. `scripts/verify.d/20-brand-logo.sh`가 `brand-mark` 요소가 이 형태를
+벗어나면(텍스트 태그이거나 다른 src) push 전에 잡는다. 같은 유형의 사고가 posselect #216
+(customer.front `Logo` 컴포넌트가 CDN 대신 `<text>`로 워드마크를 직접 그리던 문제)에도 있었다.
+
 ## 구조
 
 | 경로 | 역할 |
@@ -26,6 +44,7 @@
 | `site/assets/vendor/qrcode.js` | QR 인코더 사본 (kazuhikoarase, MIT) — **직접 수정 금지** |
 | `scripts/test/qr-roundtrip.mjs` | 생성한 QR 이 실제로 디코딩되는지 왕복 검증 |
 | `scripts/test/check-links.mjs` | 죽은 로컬 참조 검사 |
+| `scripts/test/check-brand-logo.mjs` | `brand-mark`가 텍스트 흉내가 아니라 정식 CDN 로고 `<img>`인지 검사 |
 | `nginx.conf` | 정적 서빙 설정 |
 
 ## 도구를 새로 추가할 때
@@ -51,7 +70,7 @@
 ## 검증
 
 ```bash
-bash scripts/verify.sh      # npm test(QR 왕복) + 죽은 링크 검사
+bash scripts/verify.sh      # npm test(QR 왕복) + 죽은 링크 검사 + 브랜드 로고 검사
 ```
 
 `.githooks/pre-push`, Claude 훅, CI 가 전부 이 스크립트 하나를 부른다. 새 클론에서는
