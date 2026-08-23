@@ -89,13 +89,13 @@ a { color: var(--accent); }
   color: inherit;
 }
 
+/* posselect-shell Header.tsx 의 LOGO_URL 과 동일한 CDN 자산을 참조한다(png/svg 텍스트로
+   흉내 내지 말 것 — 텍스트로 그린 워드마크가 CDN 정식 자산과 따로 놀던 사고가 있었다,
+   posselect #216). 이미지는 자체 배경/브랜드 색을 갖고 있어 라이트/다크 양쪽에서 그대로 쓴다. */
 .brand-mark {
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: -.02em;
-  color: var(--accent);
-  font-size: 1.05rem;
-  text-transform: uppercase;
+  height: 22px;
+  width: auto;
+  display: block;
 }
 
 h1 {
